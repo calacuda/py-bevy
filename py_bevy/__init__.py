@@ -1,4 +1,5 @@
 from enum import Enum
+from joblib import Parallel, delayed
 
 # TODO: add a Render callback to the App class that will run every tick and
 # will handle renders
@@ -62,6 +63,7 @@ class App:
         # maps look up id to entity. used to get an id to map into self.esper.
         self.entities = {}
         self.quitting = False
+        self.par = Parallel(-1, require='sharedmem')
 
     def register(self, state, on=Schedule.UPDATE):
         """
@@ -107,6 +109,7 @@ class App:
 
         if self.state.state:
             print("State: ", self.state)
+            # print("State: ", self.state)
 
     def exit(self):
         # self.set_next_state(self.state.state)
@@ -124,15 +127,23 @@ class App:
         systems = self.get_systems()
 
         if systems:
-            for f in systems:
-                f(self)
+            # for f in systems:
+            #     f(self)
+            # Parallel(-1, require='sharedmem')(delayed(f)(self)
+            #                                   for f in systems)
+            self.par(delayed(f)(self)
+                     for f in systems)
 
         if self.state.schedule is Schedule.ENTER:
+            # print(f"schedule was ENTER and self.quitting = {self.quitting}")
+
             self.state.schedule = Schedule.UPDATE
 
             if self.state.state:
                 print("State: ", self.state)
         elif self.state.schedule is Schedule.EXIT:
+            # print(f"schedule was EXIT and self.quitting = {self.quitting}")
+
             if not self.quitting:
                 self.state = self.next_state
 
@@ -142,22 +153,32 @@ class App:
             else:
                 self.quitting = False
 
+            # print(f"state = {self.state.state} | next_state = {
+            #       self.next_state}")
         elif not systems and self.state.schedule is Schedule.UPDATE:
+            # print(f"schedule was UPDATE | self.quitting = {
+            #     self.quitting} | no systems found")
+
             self.state.schedule = Schedule.EXIT
 
             if self.state.state:
                 print("State: ", self.state)
         # else:
         #     # print("++++++++++++++++++++")
+        #     # print(f"schedule was {self.state.schedule} | state.name = {
+        #     #       self.state.state} | self.quitting = {self.quitting}")
+        #     # print(f"next_state = {self.next_state}")
+        #     # print("++++++++++++++++++++")
+        #
         #     self.state = self.next_state
 
     def run(self):
-        from time import sleep
+        # from time import sleep
 
         print("State: ", self.state)
         # a system can set state to None to stop this loop and exit.
         while self.state.state is not None:
             self.step()
-            sleep(1.0 / 60.0)
+            # sleep(1.0 / 60.0)
 
         # TODO: add clean up here

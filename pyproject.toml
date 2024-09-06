@@ -27,6 +27,7 @@ classifiers = [
 dependencies = [
     "esper",
     # "pygame",
+    "joblib",
 ]
 
 [project.urls]
