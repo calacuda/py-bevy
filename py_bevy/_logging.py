@@ -10,8 +10,8 @@ class CustomFormatter(Formatter):
     red = "\x1b[31;20m"
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
-    format = f"[%(levelname)s | %(asctime)s | %(name)s | (%(filename)s:%(lineno)d)]{
-        reset} :  %(message)s"
+    format = f"[%(levelname)s | %(asctime)s | %(name)s | (%(filename)s:%(lineno)d)]\
+{reset} :  %(message)s"
 
     FORMATS = {
         DEBUG: f"{blue}{format}",
