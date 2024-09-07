@@ -108,8 +108,8 @@ class App:
 
                 return val
 
-            self.log.info(f"\"{func.__name__}\" registered to run on, \"{
-                on}\" in \"{state}\".")
+            self.log.info(f"\"{func.__name__}\" registered to run on, \
+\"{on}\" in \"{state}\".")
 
             return wrapper
             # return func
