@@ -1,5 +1,7 @@
 from enum import Enum
 from joblib import Parallel, delayed
+from logging import INFO
+from py_bevy._logging import get_logger
 
 # TODO: add a Render callback to the App class that will run every tick and
 # will handle renders
@@ -51,19 +53,39 @@ class State:
 
 
 class App:
-    def __init__(self, start_state: Enum):
+    def __init__(self, start_state: Enum, log_level=INFO):
         import esper
 
-        # maps state name to and insace of the State class
+        # maps state name to and insace of the State class.
         self.systems = {}
+        # systems that apply to all states.
         self.global_systems = StateSystems()
-        self.state = State(start_state)
-        self.next_state = State(start_state)
+        self._state = State(start_state)
+        self._next_state = State(start_state)
         self.esper = esper
         # maps look up id to entity. used to get an id to map into self.esper.
         self.entities = {}
-        self.quitting = False
-        self.par = Parallel(-1, require='sharedmem')
+        self._quitting = False
+        self._par = Parallel(-1, require='sharedmem')
+        self.log = get_logger(log_level)
+
+    # def debug(self, *args, **kwargs):
+    #     self.logger.debug(*args, **kwargs)
+    #
+    # def info(self, *args, **kwargs):
+    #     self.logger.info(*args, **kwargs)
+    #
+    # def warning(self, *args, **kwargs):
+    #     self.logger.warning(*args, **kwargs)
+    #
+    # def error(self, *args, **kwargs):
+    #     self.logger.error(*args, **kwargs)
+    #
+    # def critical(self, *args, **kwargs):
+    #     self.logger.critical(*args, **kwargs)
+
+    def set_loglevel(self, log_level):
+        self.logger = get_logger(log_level)
 
     def register(self, state, on=Schedule.UPDATE):
         """
@@ -79,9 +101,18 @@ class App:
                 self.systems[state] = loc_state
 
             def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
+                self.log.debug(f"System, {func.__name__} running...")
+                val = func(*args, **kwargs)
+                self.log.debug(
+                    f"System, {func.__name__} compleated without error")
+
+                return val
+
+            self.log.info(f"\"{func.__name__}\" registered to run on, \"{
+                on}\" in \"{state}\".")
 
             return wrapper
+            # return func
 
         return dec
 
@@ -95,34 +126,39 @@ class App:
             return None
 
     def get_systems(self):
-        systems = self.systems.get(self.state.state)
+        systems = self.systems.get(self._state.state)
 
         if systems:
-            return systems.get_systems(self.state.schedule)
+            return systems.get_systems(self._state.schedule)
         else:
-            self.state.state = None
+            self._state.state = None
             return None
 
     def set_next_state(self, next_state):
-        self.state.schedule = Schedule.EXIT
-        self.next_state = State(next_state)
+        self._state.schedule = Schedule.EXIT
+        self._next_state = State(next_state)
 
-        if self.state.state:
-            print("State: ", self.state)
-            # print("State: ", self.state)
+        if self._state.state:
+            self.log.debug(f"State set to: {self._state}")
 
     def exit(self):
         # self.set_next_state(self.state.state)
         # self.next_state = State(self.state.state)
         # self.next_state.schedule = Schedule.EXIT
         # print("self.exit called")
-        self.set_next_state(None)
-        self.quitting = True
+        self.log.debug("applicaiton exit has been called.")
+        # self.set_next_state(None)
+        self._quitting = True
+        self.log.warning("applicaiton exit has been scheduled.")
 
     def step(self):
         # print("current : ", self.state)
         # print("next : ", self.next_state)
         # print("State: ", self.state)
+        if self._quitting:
+            self.log.debug("preparing to quit")
+            # self._quitting = False
+            self.set_next_state(None)
 
         systems = self.get_systems()
 
@@ -131,54 +167,54 @@ class App:
             #     f(self)
             # Parallel(-1, require='sharedmem')(delayed(f)(self)
             #                                   for f in systems)
-            self.par(delayed(f)(self)
-                     for f in systems)
+            self._par(delayed(f)(self)
+                      for f in systems)
 
-        if self.state.schedule is Schedule.ENTER:
+        if self._state.schedule is Schedule.ENTER:
             # print(f"schedule was ENTER and self.quitting = {self.quitting}")
 
-            self.state.schedule = Schedule.UPDATE
+            self._state.schedule = Schedule.UPDATE
 
-            if self.state.state:
-                print("State: ", self.state)
-        elif self.state.schedule is Schedule.EXIT:
-            # print(f"schedule was EXIT and self.quitting = {self.quitting}")
+            if self._state.state:
+                self.log.debug(f"State set to: {self._state}")
+        elif self._state.schedule is Schedule.EXIT:
+            print(f"schedule was EXIT and self.quitting = {self._quitting}")
+            self._state = self._next_state
 
-            if not self.quitting:
-                self.state = self.next_state
+            if self._state.state:
+                self.log.debug(f"State set to: {self._state}")
 
-                if self.state.state:
-                    print("State: ", self.state)
-
-            else:
-                self.quitting = False
+            # if not self._quitting:
+            #                 else:
 
             # print(f"state = {self.state.state} | next_state = {
             #       self.next_state}")
-        elif not systems and self.state.schedule is Schedule.UPDATE:
+        elif not systems and self._state.schedule is Schedule.UPDATE:
             # print(f"schedule was UPDATE | self.quitting = {
             #     self.quitting} | no systems found")
 
-            self.state.schedule = Schedule.EXIT
+            self._state.schedule = Schedule.EXIT
 
-            if self.state.state:
-                print("State: ", self.state)
+            if self._state.state:
+                self.log.debug(f"State set to: {self._state}")
         # else:
         #     # print("++++++++++++++++++++")
-        #     # print(f"schedule was {self.state.schedule} | state.name = {
-        #     #       self.state.state} | self.quitting = {self.quitting}")
-        #     # print(f"next_state = {self.next_state}")
+        #     # print(f"schedule was {self._state.schedule} | state.name = {
+        #     #       self._state.state} | self.quitting = {self._quitting}")
+        #     # print(f"next_state = {self._next_state}")
         #     # print("++++++++++++++++++++")
         #
-        #     self.state = self.next_state
+        #     self._state = self._next_state
 
     def run(self):
         # from time import sleep
 
-        print("State: ", self.state)
+        self.log.debug(f"State set to: {self._state}")
         # a system can set state to None to stop this loop and exit.
-        while self.state.state is not None:
+        while self._state.state is not None:
             self.step()
             # sleep(1.0 / 60.0)
+
+        self.log.warning("application main loop has run to completion")
 
         # TODO: add clean up here
