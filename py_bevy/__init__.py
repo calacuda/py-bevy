@@ -1,5 +1,5 @@
 from enum import Enum
-from joblib import Parallel, delayed
+# from joblib import Parallel, delayed
 from logging import INFO
 from py_bevy._logging import get_logger
 
@@ -67,7 +67,7 @@ class App:
         self.entities = {}
         self.resources = {}
         self._quitting = False
-        self._par = Parallel(-1, require='sharedmem')
+        # self._par = Parallel(-1, require='sharedmem')
         self.log = get_logger(log_level)
 
         self.log.debug(f"State set to: {self._state}")
@@ -151,10 +151,10 @@ class App:
         systems = self.get_systems()
 
         if systems:
-            # for f in systems:
-            #     f(self)
-            Parallel(2, require='sharedmem')(delayed(f)(self)
-                                             for f in systems)
+            for f in systems:
+                f(self)
+            # Parallel(2, require='sharedmem')(delayed(f)(self)
+            #                                  for f in systems)
             # self._par(delayed(f)(self)
             #           for f in systems)
 
