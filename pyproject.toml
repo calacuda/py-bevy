@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "py_bevy"
-version = "0.1.1"
+version = "0.1.2"
 description = "a state-based, bevy like, automatic, game-loop generator that used esper under the hood as an ECS database"  
 readme = "README.md"
 authors = [
