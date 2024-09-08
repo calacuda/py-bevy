@@ -166,12 +166,12 @@ class App:
         systems = self.get_systems()
 
         if systems:
-            # for f in systems:
-            #     f(self)
+            for f in systems:
+                f(self)
             # Parallel(-1, require='sharedmem')(delayed(f)(self)
             #                                   for f in systems)
-            self._par(delayed(f)(self)
-                      for f in systems)
+            # self._par(delayed(f)(self)
+            #           for f in systems)
 
         if self._state.schedule is Schedule.ENTER:
             # print(f"schedule was ENTER and self.quitting = {self.quitting}")
