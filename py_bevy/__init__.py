@@ -70,6 +70,8 @@ class App:
         self._par = Parallel(-1, require='sharedmem')
         self.log = get_logger(log_level)
 
+        self.log.debug(f"State set to: {self._state}")
+
     # def debug(self, *args, **kwargs):
     #     self.logger.debug(*args, **kwargs)
     #
@@ -207,14 +209,17 @@ class App:
         #
         #     self._state = self._next_state
 
+    def should_loop(self):
+        self._state.state is not None
+
     def run(self):
         # from time import sleep
 
-        self.log.debug(f"State set to: {self._state}")
+        # self.log.debug(f"State set to: {self._state}")
         # a system can set state to None to stop this loop and exit.
-        while self._state.state is not None:
+        while self.should_loop:
             self.step()
-            # sleep(1.0 / 60.0)
+        # sleep(1.0 / 60.0)
 
         self.log.warning("application main loop has run to completion")
 
