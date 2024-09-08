@@ -65,6 +65,7 @@ class App:
         self.esper = esper
         # maps look up id to entity. used to get an id to map into self.esper.
         self.entities = {}
+        self.resources = {}
         self._quitting = False
         self._par = Parallel(-1, require='sharedmem')
         self.log = get_logger(log_level)
