@@ -72,21 +72,6 @@ class App:
 
         self.log.debug(f"State set to: {self._state}")
 
-    # def debug(self, *args, **kwargs):
-    #     self.logger.debug(*args, **kwargs)
-    #
-    # def info(self, *args, **kwargs):
-    #     self.logger.info(*args, **kwargs)
-    #
-    # def warning(self, *args, **kwargs):
-    #     self.logger.warning(*args, **kwargs)
-    #
-    # def error(self, *args, **kwargs):
-    #     self.logger.error(*args, **kwargs)
-    #
-    # def critical(self, *args, **kwargs):
-    #     self.logger.critical(*args, **kwargs)
-
     def set_loglevel(self, log_level):
         self.logger = get_logger(log_level)
 
@@ -166,10 +151,10 @@ class App:
         systems = self.get_systems()
 
         if systems:
-            for f in systems:
-                f(self)
-            # Parallel(-1, require='sharedmem')(delayed(f)(self)
-            #                                   for f in systems)
+            # for f in systems:
+            #     f(self)
+            Parallel(2, require='sharedmem')(delayed(f)(self)
+                                             for f in systems)
             # self._par(delayed(f)(self)
             #           for f in systems)
 
