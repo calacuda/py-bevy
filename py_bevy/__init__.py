@@ -181,7 +181,7 @@ class App:
             if self._state.state:
                 self.log.debug(f"State set to: {self._state}")
         elif self._state.schedule is Schedule.EXIT:
-            print(f"schedule was EXIT and self.quitting = {self._quitting}")
+            # print(f"schedule was EXIT and self.quitting = {self._quitting}")
             self._state = self._next_state
 
             if self._state.state:
