@@ -117,8 +117,10 @@ class App:
 
     def get_systems(self):
         systems = self.systems.get(self._state.state)
+        # print(self._state, end=" -> ")
 
         if systems:
+            # print(len(systems.get_systems(self._state.schedule)))
             return systems.get_systems(self._state.schedule)
         else:
             # self._state.state = None
@@ -153,8 +155,9 @@ class App:
         systems = self.get_systems()
 
         if systems:
-            for f in systems:
-                f(self)
+            # for f in systems:
+            #     f(self)
+            [f(self) for f in systems]
             # Parallel(2, require='sharedmem')(delayed(f)(self)
             #                                  for f in systems)
             # self._par(delayed(f)(self)
