@@ -62,6 +62,8 @@ class App:
         self.global_systems = StateSystems()
         self._state = State(start_state)
         self._next_state = State(start_state)
+        self._init_state = start_state
+        self._next_state.schedule = Schedule.UPDATE
         self.esper = esper
         # maps look up id to entity. used to get an id to map into self.esper.
         self.entities = {}
@@ -119,7 +121,7 @@ class App:
         if systems:
             return systems.get_systems(self._state.schedule)
         else:
-            self._state.state = None
+            # self._state.state = None
             return None
 
     def set_next_state(self, next_state):
@@ -194,8 +196,11 @@ class App:
         #
         #     self._state = self._next_state
 
+    def _in_init_state(self):
+        return self._state.state == self._init_state
+
     def should_loop(self):
-        self._state.state is not None
+        return self._state.state is not None or self._in_init_state
 
     def run(self):
         # from time import sleep
