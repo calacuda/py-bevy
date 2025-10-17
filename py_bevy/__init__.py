@@ -130,7 +130,7 @@ class App:
         self._state.schedule = Schedule.EXIT
         self._next_state = State(next_state)
 
-        if self._state.state:
+        if self._state.state is not None:
             self.log.debug(f"State set to: {self._state}")
 
     def exit(self):
@@ -206,14 +206,16 @@ class App:
         return self._state.state == self._init_state
 
     def should_loop(self):
-        return self._state.state is not None or self._in_init_state
+        running = self._state.state is not None or self._in_init_state
+        self.log.info(f"should run returning {running}")
+        return running
 
     def run(self):
         # from time import sleep
 
         # self.log.debug(f"State set to: {self._state}")
         # a system can set state to None to stop this loop and exit.
-        while self.should_loop:
+        while self.should_loop():
             self.step()
         # sleep(1.0 / 60.0)
 
