@@ -206,7 +206,7 @@ class App:
         return self._state.state == self._init_state
 
     def should_loop(self):
-        running = self._state.state is not None or self._in_init_state
+        running = self._state.state is not None or self._in_init_state()
         self.log.info(f"should run returning {running}")
         return running
 
