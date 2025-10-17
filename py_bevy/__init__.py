@@ -198,6 +198,9 @@ class App:
         #     # print("++++++++++++++++++++")
         #
         #     self._state = self._next_state
+        elif self._state.schedule is None:
+            print("exiting")
+            quit()
 
     def _in_init_state(self):
         return self._state.state == self._init_state
